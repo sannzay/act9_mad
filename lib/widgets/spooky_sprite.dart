@@ -5,7 +5,7 @@ import 'animated_pulse.dart';
 
 class SpookySprite extends StatefulWidget {
   final String imageAsset;
-  final Offset basePos;       
+  final Offset basePos;
   final double baseSize;
   final bool isTrap;
   final bool isTarget;
@@ -53,68 +53,72 @@ class _SpookySpriteState extends State<SpookySprite>
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final h = constraints.maxHeight;
-        final baseX = widget.basePos.dx * w;
-        final baseY = widget.basePos.dy * h;
+    return LayoutBuilder(builder: (context, constraints) {
+      final w = constraints.maxWidth;
+      final h = constraints.maxHeight;
 
-        return AnimatedBuilder(
-          animation: _ctrl,
-          builder: (context, child) {
-            final t = _ctrl.value * 2 * pi;
-            final dx = sin(t + _phase) * _ampX * w;
-            final dy = cos(t + _phase) * _ampY * h;
-            final left = (baseX + dx) - widget.baseSize / 2;
-            final top = (baseY + dy) - widget.baseSize / 2;
+      final baseX = widget.basePos.dx * w;
+      final baseY = widget.basePos.dy * h;
 
-            return Positioned(
-              left: left,
-              top: top,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () async {
-                  if (widget.isTrap) {
-                    widget.onTriggeredTrap();
-                  } else if (widget.isTarget) {
-                    widget.onFoundTarget();
-                  } else {
-                    await AudioService.playSfx('success.mp3');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Not it — keep looking!'),
-                        duration: Duration(milliseconds: 700),
-                      ),
-                    );
-                  }
-                },
-                child: SizedBox(
-                  width: widget.baseSize,
-                  height: widget.baseSize,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Hero(
-                          tag: widget.isTarget
-                              ? 'pumpkin-hero'
-                              : 'sprite-${widget.basePos}',
-                          child: Image.asset(widget.imageAsset,
-                              width: widget.baseSize,
-                              height: widget.baseSize,
-                              fit: BoxFit.contain),
+      return AnimatedBuilder(
+        animation: _ctrl,
+        builder: (context, child) {
+          final t = _ctrl.value * 2 * pi;
+          final dx = sin(t + _phase) * _ampX * w;
+          final dy = cos(t + _phase) * _ampY * h;
+
+          double left = (baseX + dx) - widget.baseSize / 2;
+          double top = (baseY + dy) - widget.baseSize / 2;
+
+          left = left.clamp(0.0, max(0.0, w - widget.baseSize));
+          top = top.clamp(0.0, max(0.0, h - widget.baseSize));
+
+          return Positioned(
+            left: left,
+            top: top,
+            width: widget.baseSize,
+            height: widget.baseSize,
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () async {
+                if (widget.isTrap) {
+                  widget.onTriggeredTrap();
+                } else if (widget.isTarget) {
+                  widget.onFoundTarget();
+                } else {
+                  await AudioService.playSfx('success.mp3');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Not it — keep looking!'),
+                      duration: Duration(milliseconds: 700),
+                    ),
+                  );
+                }
+              },
+              child: SizedBox(
+                width: widget.baseSize,
+                height: widget.baseSize,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Hero(
+                        tag: widget.isTarget ? 'pumpkin-hero' : 'sprite-${widget.basePos}',
+                        child: Image.asset(
+                          widget.imageAsset,
+                          width: widget.baseSize,
+                          height: widget.baseSize,
+                          fit: BoxFit.contain,
                         ),
                       ),
-                      if (widget.isTarget)
-                        AnimatedPulse(size: widget.baseSize * 0.8),
-                    ],
-                  ),
+                    ),
+                    if (widget.isTarget) AnimatedPulse(size: widget.baseSize * 0.8),
+                  ],
                 ),
               ),
-            );
-          },
-        );
-      },
-    );
+            ),
+          );
+        },
+      );
+    });
   }
 }
