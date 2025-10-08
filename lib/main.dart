@@ -43,8 +43,8 @@ class HomePage extends StatelessWidget {
               children: [
                 Hero(
                   tag: 'pumpkin-hero',
-                  child:
-                      Image.asset('assets/images/pumpkin.png', width: 160, height: 160),
+                  child: Image.asset('assets/images/pumpkin.png',
+                      width: 160, height: 160),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -60,7 +60,8 @@ class HomePage extends StatelessWidget {
                 ElevatedButton.icon(
                   icon: const Icon(Icons.play_arrow),
                   label: const Text('Start the Hunt'),
-                  onPressed: () {
+                  onPressed: () async {
+                    await AudioService.playBackground();
                     Navigator.of(context).pushNamed('/story');
                   },
                 ),
@@ -87,7 +88,8 @@ class StoryPage extends StatefulWidget {
   State<StoryPage> createState() => _StoryPageState();
 }
 
-class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
+class _StoryPageState extends State<StoryPage>
+    with TickerProviderStateMixin {
   late final AnimationController _batController;
   final _rng = Random();
   late final int _targetIndex;
@@ -99,7 +101,7 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 6),
     )..repeat();
-    AudioService.playBackground();
+
     _targetIndex = _rng.nextInt(5);
   }
 
@@ -122,6 +124,7 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
             const Offset(0.6, 0.6),
             const Offset(0.45, 0.4),
           ];
+
           final List<Map<String, dynamic>> spriteConfigs = [
             {'image': 'assets/images/ghost.png', 'isTrap': false},
             {'image': 'assets/images/bat.png', 'isTrap': true},
@@ -137,7 +140,8 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
                   animation: _batController,
                   builder: (context, child) {
                     return CustomPaint(
-                      painter: SpookyBackgroundPainter(progress: _batController.value),
+                      painter:
+                          SpookyBackgroundPainter(progress: _batController.value),
                     );
                   },
                 ),
@@ -153,31 +157,30 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
               ),
 
               for (var i = 0; i < spriteConfigs.length; i++)
-                Positioned.fill(
-                  child: SpookySprite(
-                    key: ValueKey('sprite-$i'),
-                    imageAsset: spriteConfigs[i]['image'] as String,
-                    basePos: spawnPoints[i],
-                    baseSize: (i == _targetIndex) ? 84.0 : 64.0,
-                    isTrap: spriteConfigs[i]['isTrap'] as bool,
-                    isTarget: i == _targetIndex,
-                    onFoundTarget: () async {
-                      await AudioService.playSfx('success.mp3');
-                      if (!mounted) return;
-                      Navigator.of(context).pushReplacementNamed('/win');
-                    },
-                    onTriggeredTrap: () async {
-                      await AudioService.playSfx('jumpscare.mp3');
-                      if (!mounted) return;
-                      showDialog(
-                        context: context,
-                        barrierDismissible: true,
-                        builder: (context) => ScaryDialog(),
-                      );
-                    },
-                  ),
+                SpookySprite(
+                  key: ValueKey('sprite-$i'),
+                  imageAsset: spriteConfigs[i]['image'] as String,
+                  basePos: spawnPoints[i],
+                  baseSize: (i == _targetIndex) ? 84.0 : 64.0,
+                  isTrap: spriteConfigs[i]['isTrap'] as bool,
+                  isTarget: i == _targetIndex,
+                  onFoundTarget: () async {
+                    await AudioService.playSfx('success.mp3');
+                    if (!mounted) return;
+                    Navigator.of(context).pushReplacementNamed('/win');
+                  },
+                  onTriggeredTrap: () async {
+                    await AudioService.playSfx('jumpscare.mp3');
+                    if (!mounted) return;
+                    showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (context) => ScaryDialog(),
+                    );
+                  },
                 ),
 
+              
               Positioned(
                 left: 16,
                 right: 16,
@@ -186,13 +189,16 @@ class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.white24),
                       ),
-                      child: const Text('Find the glittering candy! (Some are traps...)'),
+                      child: const Text(
+                        'Find the glittering candy! (Some are traps...)',
+                      ),
                     ),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.music_note),
@@ -225,13 +231,12 @@ class WinPage extends StatelessWidget {
             children: [
               Hero(
                 tag: 'pumpkin-hero',
-                child: Image.asset('assets/images/candy.png', width: 160, height: 160),
+                child: Image.asset('assets/images/candy.png',
+                    width: 160, height: 160),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'You Found It!',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-              ),
+              const Text('You Found It!',
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               const Text('Trick or treat — you win!'),
               const SizedBox(height: 24),
