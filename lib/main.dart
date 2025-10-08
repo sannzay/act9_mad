@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'services/audio_service.dart';
 import 'painters/spooky_background_painter.dart';
@@ -70,7 +69,7 @@ class HomePage extends StatelessWidget {
                   onPressed: () async {
                     await AudioService.playSfx('success.mp3');
                   },
-                  child: const Text('Preview success sound'),
+                  child: const Text(''),
                 )
               ],
             ),
@@ -91,8 +90,6 @@ class StoryPage extends StatefulWidget {
 class _StoryPageState extends State<StoryPage>
     with TickerProviderStateMixin {
   late final AnimationController _batController;
-  final _rng = Random();
-  late final int _targetIndex;
 
   @override
   void initState() {
@@ -101,8 +98,6 @@ class _StoryPageState extends State<StoryPage>
       vsync: this,
       duration: const Duration(seconds: 6),
     )..repeat();
-
-    _targetIndex = _rng.nextInt(5);
   }
 
   @override
@@ -114,28 +109,23 @@ class _StoryPageState extends State<StoryPage>
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final topPadding = media.padding.top;
-
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {
-          final w = constraints.maxWidth;
-          final h = constraints.maxHeight;
           final spawnPoints = [
-            Offset(0.12, 0.28), 
-            Offset(0.82, 0.24),
-            Offset(0.28, 0.72),
-            Offset(0.62, 0.62),
-            Offset(0.48, 0.44),
+            Offset(0.15, 0.25), // Top left - Ghost (trap)
+            Offset(0.85, 0.20), // Top right - Bat (trap)  
+            Offset(0.50, 0.50), // Center - Candy (target)
+            Offset(0.20, 0.75), // Bottom left - Ghost (trap)
+            Offset(0.80, 0.80), // Bottom right - Pumpkin (trap)
           ];
 
           final List<Map<String, dynamic>> spriteConfigs = [
-            {'image': 'assets/images/ghost.png', 'isTrap': false},
-            {'image': 'assets/images/bat.png', 'isTrap': true},
-            {'image': 'assets/images/candy.png', 'isTrap': false},
             {'image': 'assets/images/ghost.png', 'isTrap': true},
-            {'image': 'assets/images/pumpkin.png', 'isTrap': false},
+            {'image': 'assets/images/bat.png', 'isTrap': true},
+            {'image': 'assets/images/candy.png', 'isTrap': false, 'isTarget': true},
+            {'image': 'assets/images/ghost.png', 'isTrap': true},
+            {'image': 'assets/images/pumpkin.png', 'isTrap': true},
           ];
 
           return Stack(
@@ -166,9 +156,9 @@ class _StoryPageState extends State<StoryPage>
                   key: ValueKey('sprite-$i'),
                   imageAsset: spriteConfigs[i]['image'] as String,
                   basePos: spawnPoints[i],
-                  baseSize: (i == _targetIndex) ? 84.0 : 64.0,
+                  baseSize: (spriteConfigs[i]['isTarget'] == true) ? 84.0 : 64.0,
                   isTrap: spriteConfigs[i]['isTrap'] as bool,
-                  isTarget: i == _targetIndex,
+                  isTarget: spriteConfigs[i]['isTarget'] == true,
                   onFoundTarget: () async {
                     await AudioService.playSfx('success.mp3');
                     if (!mounted) return;
@@ -188,32 +178,38 @@ class _StoryPageState extends State<StoryPage>
               Positioned(
                 left: 16,
                 right: 16,
-                bottom: 24,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white24),
-                        ),
-                        child: const Text(
-                          'Find the glittering candy! (Some are traps...)',
+                bottom: 16,
+                child: SafeArea(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: const Text(
+                            'Close you eyes and find the glowing candy!',
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.music_note),
-                      label: const Text('Mute'),
-                      onPressed: () async {
-                        await AudioService.stopBackground();
-                      },
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.music_note, size: 16),
+                        label: const Text('Mute', style: TextStyle(fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                        onPressed: () async {
+                          await AudioService.stopBackground();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

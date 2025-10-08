@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 class AnimatedPulse extends StatefulWidget {
@@ -30,22 +31,48 @@ class _AnimatedPulseState extends State<AnimatedPulse>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: widget.size,
-      height: widget.size / 4,
+      width: widget.size * 1.5,
+      height: widget.size * 1.5,
       child: AnimatedBuilder(
         animation: _c,
         builder: (context, child) {
-          final t = (_c.value * 2) % 1.0;
-          final alpha =
-              (0.35 + 0.65 * (1 - (t - 0.5).abs() * 2)).clamp(0.0, 1.0);
-          return Opacity(
-            opacity: alpha,
-            child: Container(
-              width: widget.size,
-              height: widget.size / 6,
-              decoration: BoxDecoration(
-                color: Colors.orangeAccent.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(12),
+          final t = _c.value;
+          final scale = 0.8 + 0.4 * (1 + sin(t * 2 * 3.14159)) / 2;
+          final alpha = 0.3 + 0.7 * (1 + sin(t * 2 * 3.14159)) / 2;
+          
+          return Center(
+            child: Transform.scale(
+              scale: scale,
+              child: Container(
+                width: widget.size,
+                height: widget.size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orangeAccent.withOpacity(alpha * 0.8),
+                      blurRadius: 20 * scale,
+                      spreadRadius: 5 * scale,
+                    ),
+                    BoxShadow(
+                      color: Colors.yellowAccent.withOpacity(alpha * 0.6),
+                      blurRadius: 30 * scale,
+                      spreadRadius: 10 * scale,
+                    ),
+                  ],
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.orangeAccent.withOpacity(alpha * 0.6),
+                        Colors.yellowAccent.withOpacity(alpha * 0.3),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           );
