@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+
 import 'services/audio_service.dart';
 import 'painters/spooky_background_painter.dart';
 import 'widgets/spooky_sprite.dart';
@@ -42,8 +43,8 @@ class HomePage extends StatelessWidget {
               children: [
                 Hero(
                   tag: 'pumpkin-hero',
-                  child: Image.asset('assets/images/pumpkin.png',
-                      width: 160, height: 160),
+                  child:
+                      Image.asset('assets/images/pumpkin.png', width: 160, height: 160),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -86,8 +87,7 @@ class StoryPage extends StatefulWidget {
   State<StoryPage> createState() => _StoryPageState();
 }
 
-class _StoryPageState extends State<StoryPage>
-    with TickerProviderStateMixin {
+class _StoryPageState extends State<StoryPage> with TickerProviderStateMixin {
   late final AnimationController _batController;
   final _rng = Random();
   late final int _targetIndex;
@@ -114,74 +114,99 @@ class _StoryPageState extends State<StoryPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final spawnPoints = [
-              const Offset(0.15, 0.25),
-              const Offset(0.8, 0.2),
-              const Offset(0.25, 0.7),
-              const Offset(0.6, 0.6),
-              const Offset(0.45, 0.4),
-            ];
+        child: LayoutBuilder(builder: (context, constraints) {
+          final spawnPoints = [
+            const Offset(0.15, 0.25),
+            const Offset(0.8, 0.2),
+            const Offset(0.25, 0.7),
+            const Offset(0.6, 0.6),
+            const Offset(0.45, 0.4),
+          ];
+          final List<Map<String, dynamic>> spriteConfigs = [
+            {'image': 'assets/images/ghost.png', 'isTrap': false},
+            {'image': 'assets/images/bat.png', 'isTrap': true},
+            {'image': 'assets/images/candy.png', 'isTrap': false},
+            {'image': 'assets/images/ghost.png', 'isTrap': true},
+            {'image': 'assets/images/pumpkin.png', 'isTrap': false},
+          ];
 
-            final spriteConfigs = [
-              {'image': 'assets/images/ghost.png', 'isTrap': false},
-              {'image': 'assets/images/bat.png', 'isTrap': true},
-              {'image': 'assets/images/candy.png', 'isTrap': false},
-              {'image': 'assets/images/ghost.png', 'isTrap': true},
-              {'image': 'assets/images/pumpkin.png', 'isTrap': false},
-            ];
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: AnimatedBuilder(
+                  animation: _batController,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: SpookyBackgroundPainter(progress: _batController.value),
+                    );
+                  },
+                ),
+              ),
 
-            return Stack(
-              children: [
+              Positioned(
+                left: 12,
+                top: 12,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+
+              for (var i = 0; i < spriteConfigs.length; i++)
                 Positioned.fill(
-                  child: AnimatedBuilder(
-                    animation: _batController,
-                    builder: (context, child) {
-                      return CustomPaint(
-                        painter: SpookyBackgroundPainter(
-                            progress: _batController.value),
+                  child: SpookySprite(
+                    key: ValueKey('sprite-$i'),
+                    imageAsset: spriteConfigs[i]['image'] as String,
+                    basePos: spawnPoints[i],
+                    baseSize: (i == _targetIndex) ? 84.0 : 64.0,
+                    isTrap: spriteConfigs[i]['isTrap'] as bool,
+                    isTarget: i == _targetIndex,
+                    onFoundTarget: () async {
+                      await AudioService.playSfx('success.mp3');
+                      if (!mounted) return;
+                      Navigator.of(context).pushReplacementNamed('/win');
+                    },
+                    onTriggeredTrap: () async {
+                      await AudioService.playSfx('jumpscare.mp3');
+                      if (!mounted) return;
+                      showDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (context) => ScaryDialog(),
                       );
                     },
                   ),
                 ),
-                Positioned(
-                  left: 12,
-                  top: 12,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ),
-                for (var i = 0; i < spriteConfigs.length; i++)
-                  Positioned.fill(
-                    child: SpookySprite(
-                      key: ValueKey('sprite-$i'),
-                      imageAsset: spriteConfigs[i]['image']!,
-                      basePos: spawnPoints[i],
-                      baseSize: (i == _targetIndex) ? 84.0 : 64.0,
-                      isTrap: spriteConfigs[i]['isTrap']!,
-                      isTarget: i == _targetIndex,
-                      onFoundTarget: () async {
-                        await AudioService.playSfx('success.mp3');
-                        if (!mounted) return;
-                        Navigator.of(context).pushReplacementNamed('/win');
-                      },
-                      onTriggeredTrap: () async {
-                        await AudioService.playSfx('jumpscare.mp3');
-                        if (!mounted) return;
-                        showDialog(
-                          context: context,
-                          barrierDismissible: true,
-                          builder: (context) => ScaryDialog(),
-                        );
+
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 24,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: const Text('Find the glittering candy! (Some are traps...)'),
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.music_note),
+                      label: const Text('Mute'),
+                      onPressed: () async {
+                        await AudioService.stopBackground();
                       },
                     ),
-                  ),
-              ],
-            );
-          },
-        ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -200,19 +225,18 @@ class WinPage extends StatelessWidget {
             children: [
               Hero(
                 tag: 'pumpkin-hero',
-                child: Image.asset('assets/images/candy.png',
-                    width: 160, height: 160),
+                child: Image.asset('assets/images/candy.png', width: 160, height: 160),
               ),
               const SizedBox(height: 24),
-              const Text('You Found It!',
-                  style:
-                      TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+              const Text(
+                'You Found It!',
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
               const Text('Trick or treat — you win!'),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () =>
-                    Navigator.of(context).pushReplacementNamed('/'),
+                onPressed: () => Navigator.of(context).pushReplacementNamed('/'),
                 child: const Text('Play Again'),
               )
             ],

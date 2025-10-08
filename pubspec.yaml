@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   provider: ^6.0.5
-  audioplayers: ^2.1.9
+  audioplayers: ^6.5.1
 
 flutter:
   uses-material-design: true
