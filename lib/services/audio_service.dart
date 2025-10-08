@@ -2,14 +2,14 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
 class AudioService {
-  static final AudioPlayer _bg = AudioPlayer();
-  static final AudioPlayer _sfx = AudioPlayer(); 
+  static final AudioPlayer _bg = AudioPlayer();   
+  static final AudioPlayer _sfx = AudioPlayer();  
 
   static Future<void> playBackground() async {
     try {
       await _bg.setReleaseMode(ReleaseMode.loop);
       await _bg.play(AssetSource('audio/background.mp3'), volume: 0.8);
-      debugPrint('AudioService: background started');
+      debugPrint('AudioService: background started (looping)');
     } catch (e, st) {
       debugPrint('AudioService: background audio error: $e\n$st');
     }
