@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-
 import 'services/audio_service.dart';
 import 'painters/spooky_background_painter.dart';
 import 'widgets/spooky_sprite.dart';
@@ -18,6 +17,7 @@ class SpooktacularApp extends StatelessWidget {
     return MaterialApp(
       title: 'Spooktacular Storybook',
       theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: Colors.black),
+      debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
         '/': (context) => const HomePage(),
@@ -53,7 +53,7 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Find the correct item... but watch out for traps!',
+                  'Find the correct item (the candy). But watch out for traps!',
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -114,15 +114,20 @@ class _StoryPageState extends State<StoryPage>
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final topPadding = media.padding.top;
+
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          final h = constraints.maxHeight;
           final spawnPoints = [
-            const Offset(0.15, 0.25),
-            const Offset(0.8, 0.2),
-            const Offset(0.25, 0.7),
-            const Offset(0.6, 0.6),
-            const Offset(0.45, 0.4),
+            Offset(0.12, 0.28), 
+            Offset(0.82, 0.24),
+            Offset(0.28, 0.72),
+            Offset(0.62, 0.62),
+            Offset(0.48, 0.44),
           ];
 
           final List<Map<String, dynamic>> spriteConfigs = [
@@ -180,26 +185,27 @@ class _StoryPageState extends State<StoryPage>
                   },
                 ),
 
-              
               Positioned(
                 left: 16,
                 right: 16,
                 bottom: 24,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: const Text(
-                        'Find the glittering candy! (Some are traps...)',
+                    Expanded(
+                      child: Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: const Text(
+                          'Find the glittering candy! (Some are traps...)',
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 12),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.music_note),
                       label: const Text('Mute'),
